@@ -65,6 +65,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: "Setup conan"
+        shell: bash
         run: |
           python -m pip install "conan<2"
           conan config init
