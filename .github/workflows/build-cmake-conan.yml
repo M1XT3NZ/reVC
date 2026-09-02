@@ -4,6 +4,7 @@ on:
   push:
   release:
     types: published
+  workflow_dispatch:
 jobs:
   build-cmake:
     strategy:
@@ -13,6 +14,7 @@ jobs:
             platform: 'gl3'
             gl3_gfxlib: 'glfw'
             audio: 'openal'
+            artifact_name: 'windows-latest-gl3'
 #          - os: 'windows-latest'
 #            platform: 'gl3'
 #            gl3_gfxlib: 'sdl2'
@@ -20,21 +22,24 @@ jobs:
           - os: 'windows-latest'
             platform: 'd3d9'
             audio: 'openal'
+            artifact_name: 'windows-latest-d3d9'
 #          - os: 'windows-latest'
 #            platform: 'd3d9'
 #            audio: 'miles'
-          - os: 'ubuntu-18.04'
+          - os: 'ubuntu-24.04'
             platform: 'gl3'
             gl3_gfxlib: 'glfw'
             audio: 'openal'
+            artifact_name: 'ubuntu-18.04-gl3'
 #          - os: 'ubuntu-18.04'
 #            platform: 'gl3'
 #            gl3_gfxlib: 'sdl2'
 #            audio: 'openal'
-          - os: 'macos-latest'
+          - os: 'macos-15-intel'
             platform: 'gl3'
             gl3_gfxlib: 'glfw'
             audio: 'openal'
+            artifact_name: 'macos-latest-gl3'
 #          - os: 'macos-latest'
 #            platform: 'gl3'
 #            gl3_gfxlib: 'sdl2'
@@ -51,16 +56,12 @@ jobs:
         with:
           repository: 'withmorten/re3mss'
           path: 're3mss'
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: "Use XCode 11 as default (conan-center-index does not provide XCode 12 binaries at the moment)"
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          sudo xcode-select --switch /Applications/Xcode_11.7.app
       - name: "Setup conan"
         run: |
-          python -m pip install conan
+          python -m pip install "conan<2"
           conan config init
           conan config set log.print_run_commands=True
           conan config set general.revisions_enabled=1
@@ -112,6 +113,6 @@ jobs:
       - name: "Archive binary package (github artifacts)"
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ matrix.platform }}"
+          name: "${{ matrix.artifact_name }}"
           path: build/*.tar.xz
           if-no-files-found: error
