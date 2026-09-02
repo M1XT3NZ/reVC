@@ -76,6 +76,12 @@ jobs:
             conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
           fi
 #          conan remote add madebr_ps2dev https://api.bintray.com/conan/madebr/ps2dev
+      - name: "Pin CMake <4 for Apple Silicon Conan builds"
+        if: ${{ matrix.os == 'macos-14' }}
+        shell: bash
+        run: |
+          python -m pip install "cmake<4"
+          echo "$(python -m site --user-base)/bin" >> "$GITHUB_PATH"
       - name: "Add os=playstation2 + gcc.version=3.2 to .conan/settings.yml"
         shell: python
         run: |
@@ -84,7 +90,9 @@ jobs:
           yml = yaml.safe_load(open(settings_path))
           yml["os"]["playstation2"] = None
           yml["compiler"]["gcc"]["version"].append("3.2")
+          yml["compiler"]["gcc"]["version"].append("15")
           yml["compiler"]["gcc"]["version"].sort()
+          yml["compiler"]["gcc"]["version"] = sorted(set(yml["compiler"]["gcc"]["version"]))
           yaml.safe_dump(yml, open(settings_path, "w"))
       - name: "Create host profile"
         shell: bash
@@ -107,6 +115,12 @@ jobs:
         if: ${{ matrix.audio == 'miles' }}
         run: |
           conan export re3mss miles-sdk/master@
+      - name: "Install Linux OpenGL development packages"
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl-dev libgl1-mesa-dev
       - name: "Download/build dependencies (conan install)"
         run: |
           conan install ${{ github.workspace }} reVC/master@ -if build -o reVC:audio=${{ matrix.audio }} -o librw:platform=${{ matrix.platform }} -o librw:gl3_gfxlib=${{ matrix.gl3_gfxlib || 'glfw' }} --build missing -pr:h ./host_profile -pr:b default -s reVC:build_type=RelWithDebInfo -s librw:build_type=RelWithDebInfo
