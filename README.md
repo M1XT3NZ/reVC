@@ -104,6 +104,7 @@ For Linux using premake, proceed: [Building on Linux](https://github.com/mrxengi
 
 Install python and conan, and then run build.
 ```
+cp .github/conan/librw-conanfile.py vendor/librw/conanfile.py
 conan export vendor/librw librw/master@
 mkdir build
 cd build
