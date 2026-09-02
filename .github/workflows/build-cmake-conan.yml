@@ -35,7 +35,7 @@ jobs:
 #            platform: 'gl3'
 #            gl3_gfxlib: 'sdl2'
 #            audio: 'openal'
-          - os: 'macos-15-intel'
+          - os: 'macos-13'
             platform: 'gl3'
             gl3_gfxlib: 'glfw'
             audio: 'openal'
