@@ -24,6 +24,8 @@ long _dwOperatingSystemVersion;
 #include <locale.h>
 #include <signal.h>
 #include <stddef.h>
+#include <limits.h>
+#include <unistd.h>
 #endif
 
 #include "common.h"
@@ -1896,6 +1898,20 @@ main(int argc, char *argv[])
 #endif
 	RwV2d pos;
 	RwInt32 i;
+
+#ifndef _WIN32
+	if (getenv("STORAGE_ROOT") == NULL) {
+		char executablePath[PATH_MAX];
+		if (realpath(argv[0], executablePath) != NULL) {
+			char *lastSlash = strrchr(executablePath, '/');
+			if (lastSlash != nil) {
+				*lastSlash = '\0';
+				if (chdir(executablePath) == 0)
+					setenv("STORAGE_ROOT", executablePath, 0);
+			}
+		}
+	}
+#endif
 
 #ifdef USE_CUSTOM_ALLOCATOR
 	InitMemoryMgr();
