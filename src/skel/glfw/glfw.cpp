@@ -1900,14 +1900,19 @@ main(int argc, char *argv[])
 	RwInt32 i;
 
 #ifndef _WIN32
-	if (getenv("STORAGE_ROOT") == NULL) {
+	const char *storageRoot = getenv("STORAGE_ROOT");
+	if (storageRoot != NULL && storageRoot[0] != '\0') {
+		if (chdir(storageRoot) != 0)
+			storageRoot = nil;
+	}
+	if (storageRoot == nil || storageRoot[0] == '\0') {
 		char executablePath[PATH_MAX];
 		if (realpath(argv[0], executablePath) != NULL) {
 			char *lastSlash = strrchr(executablePath, '/');
 			if (lastSlash != nil) {
 				*lastSlash = '\0';
 				if (chdir(executablePath) == 0)
-					setenv("STORAGE_ROOT", executablePath, 0);
+					setenv("STORAGE_ROOT", executablePath, 1);
 			}
 		}
 	}
