@@ -1,0 +1,4 @@
+{
+  "name": "reVC (Linux librw gl3/glfw + OpenAL)",
+  "install": "bash .cursor/install.sh"
+}
