@@ -223,6 +223,7 @@ void
 CdStreamInit(int32 numChannels)
 {
 	struct statvfs fsInfo;
+	bool fsInfoAvailable = false;
 #if defined ANDROID
 	char imgPath[MAX_PATH];
 	if(StorageRootBuffer == NULL) {
@@ -237,15 +238,37 @@ CdStreamInit(int32 numChannels)
 	strcat(imgPath, "/models/gta3.img");
     debug("%s\n", imgPath);
 
-    if((statvfs(imgPath, &fsInfo)) < 0)
-#elifndef ANDROID
-    if((statvfs("models/gta3.img", &fsInfo)) < 0)
-#endif
-	{
-		CDTRACE("can't get filesystem info");
-		ASSERT(0);
-		return;
+    if((statvfs(imgPath, &fsInfo)) == 0)
+		fsInfoAvailable = true;
+	else {
+		char *realImgPath = casepath(imgPath, false);
+		if (realImgPath) {
+			fsInfoAvailable = statvfs(realImgPath, &fsInfo) == 0;
+			free(realImgPath);
+		}
 	}
+#elifndef ANDROID
+    if((statvfs("models/gta3.img", &fsInfo)) == 0)
+		fsInfoAvailable = true;
+	else {
+		char *realImgPath = casepath("models/gta3.img", false);
+		if (realImgPath) {
+			fsInfoAvailable = statvfs(realImgPath, &fsInfo) == 0;
+			free(realImgPath);
+		}
+	}
+#endif
+	if (!fsInfoAvailable && statvfs(".", &fsInfo) == 0) {
+		CDTRACE("can't get filesystem info from gta3.img path, using current directory");
+		fsInfoAvailable = true;
+	}
+	if (!fsInfoAvailable) {
+		CDTRACE("can't get filesystem info, using default block size");
+		fsInfo.f_bsize = CDSTREAM_SECTOR_SIZE;
+	}
+	if (fsInfo.f_bsize == 0)
+		fsInfo.f_bsize = CDSTREAM_SECTOR_SIZE;
+
 #if defined ANDROID
 	_gdwCdStreamFlags = O_RDONLY;
 #elif defined __linux__
