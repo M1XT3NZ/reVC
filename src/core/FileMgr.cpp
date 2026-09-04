@@ -219,7 +219,11 @@ CFileMgr::Initialise(void)
         debug("Android: Root Dir: %s\n", ms_rootDirName);
 	}
 #else
-    _getcwd(ms_rootDirName, 128);
+	const char *storageRoot = getenv("STORAGE_ROOT");
+	if(storageRoot != NULL && storageRoot[0] != '\0')
+		strcpy(ms_rootDirName, storageRoot);
+	else
+		_getcwd(ms_rootDirName, 128);
 	strcat(ms_rootDirName, "\\");
 #endif
 }
